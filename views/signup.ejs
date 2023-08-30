@@ -1,0 +1,79 @@
+<%- include('header') -%>
+
+<div class="bg-1">
+  <div class="text-center center-div1" id="signup">
+    <div class="container w-25 border py-5">
+      <div class="title pb-1">
+        <h2 class="font-weight-bold">Signup Create</h2>
+        <% if (signupError) { %>
+          <div class="alert alert-danger">
+            <%= signupError %>
+          </div>
+        <% } %>
+        <span>Create Account</span>
+        <% if (locals.logout) { %>
+          <div class="alert alert-success text-center">
+            Signed out Successfully..!
+          </div>
+        <% } %>
+      </div>
+      <form action="/signup" method="POST" class="pt-3" onsubmit="return validateForm();">
+        <div class="form-group" style="margin-top: 10px; margin-bottom: 10px;">
+          <input type="text" class="form-control" placeholder="First Name" name="firstname" id="firstname" required>
+          <input type="text" class="form-control" placeholder="Last Name" name="lastname" id="lastname" required>
+          <input type="email" class="form-control" placeholder="Email" name="email" id="email" required>
+          <small class="form-text-muted text-left">Register User</small>
+        </div>
+        <div class="form-group" style="margin-top: 10px; margin-bottom: 10px;">
+          <input type="password" class="form-control" name="password" placeholder="Password" id="password" required>
+        </div>
+        <button type="submit" class="btn btn-success rounded-pill">Submit</button><br><br>
+        <a href="/login">Already have an Account? Login Now!</a>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  function validateForm() {
+    var firstname = document.getElementById("firstname").value;
+    var lastname = document.getElementById("lastname").value;
+    var email = document.getElementById("email").value;
+    var password = document.getElementById("password").value;
+
+    if (firstname === '' || lastname === '' || email === '' || password === '') {
+      alert("Fill in all the details before submitting");
+      return false;
+    }
+
+    var firstnameRegex = /^[A-Za-z\s]+$/;
+    var lastnameRegex = /^[A-Za-z\s]+$/;
+    var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    var passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/;
+
+    if (!firstname.match(firstnameRegex)) {
+      alert("First Name should only contain alphabets and spaces.");
+      return false;
+    }
+
+    if (!lastname.match(lastnameRegex)) {
+      alert("Last Name should only contain alphabets and spaces.");
+      return false;
+    }
+
+    if (!email.match(emailRegex)) {
+      alert("Please enter a valid email.");
+      return false;
+    }
+
+    if (password.length < 8 || !password.match(passwordRegex)) {
+      alert("Password must contain at least one alphabet character, one number, one special character, and be at least 8 characters long.");
+      return false;
+    }
+
+    // All validations passed
+    return true;
+  }
+</script>
+
+<%- include('footer') -%>

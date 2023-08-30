@@ -1,0 +1,49 @@
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans&display=swap');
+
+body{
+    font-family: 'Open Sans', sans-serif;
+
+}
+
+.bg-1 {
+    background-image: url('/assets/bg7.jpeg');
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+
+.bg-2 {
+    background-image: url('/assets/mountain2.jpeg');
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+
+.board {
+    background-image: url('/assets/image3.jpeg');
+    background-repeat: no-repeat;
+    background-size: cover;
+    padding: 10%;
+}
+
+.center-div1 {
+    padding: 10%;
+    color: black;
+}
+.center-div {
+    padding: 13%;
+    color: black;
+}
+
+.btn.btn-success {
+     padding: .4em 2em;
+}
+form{
+    padding: 0.3em;
+}
+
+#login.title > span {
+    font-size: .8em;
+}
+
+.border {
+    background-color: white;
+}
