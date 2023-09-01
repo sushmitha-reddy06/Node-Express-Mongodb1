@@ -130,13 +130,20 @@ app.post('/login', [
 });
 
 // Dashboard route
-app.get('/dashboard', (req, res) => {
+app.get('/dashboard', async(req, res) => {
+  try {
   // Check if user is logged in (session.userId exists)
   if (req.session.userId) {
-    res.render('dashboard');
+    //Fetch the user's data from the database
+    const user = await User.findById(req.session.userId);
+    res.render('dashboard', { user });// Pass user data to the template
   } else {
     res.redirect('/signup'); // Redirect to signup if not logged in
   }
+} catch (error) {
+  console.error('Route error:', error);
+  res.status(500).send(`An error occurred: ${error.message}`);
+}
 });
 
 // Logout route

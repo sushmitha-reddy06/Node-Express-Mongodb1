@@ -3,13 +3,23 @@
 <div class="board">
 <div class="text-center center-div mt-5" id="login">
     <div class="container w-25 border py-5 mt-5">
-    <h3>Welcome to Express Dashboard</h3>
-    <% if (locals.user) { %>
-        <h5><%= locals.user.firstname %> <%= locals.user.lastname %></h5>
-      <% } else { %>
-        <p>User</p>
-      <% } %>
-    <a href="/logout">Logout</a>
+      <h3>Welocome</h3>
+      <% if (user) { %>
+        <div class="DSB">
+        <h5><%= user.firstname %> <%= user.lastname %></h5>
+        <% } else { %>
+          <p>User not found</p>
+        <% } %>
+      <a href="https://ibridgetechsoft.com/">
+        <img width="200" height="100" src="https://ibridgetechsoft.com/wp-content/uploads/2021/12/iBridgeLogo.png"
+        class="attachment-full size-full" alt="Best Cloud Services In Hyderabad"
+        srcset="https://ibridgetechsoft.com/wp-content/uploads/2021/12/iBridgeLogo.png 334w,
+        https://ibridgetechsoft.com/wp-content/uploads/2021/1<2/iBridgeLogo-300x93.png 300w"
+        sizes="(max-width: 334px) 100vw, 334px"></a>
+    </div><br><br>
+
+      <a href="https://ibridgetechsoft.com/" class="btn btn-primary">About Us</a><br><br>
+      <a href="/logout" class="btn btn-danger">Logout</a>
     </div>
 </div> 
 </div>
