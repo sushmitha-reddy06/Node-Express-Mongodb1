@@ -27,8 +27,8 @@
         <a href="https://www.instagram.com/ibridgetechsoft/?hl=en"><i style="font-size:32px" class="fa">&#xf16d;</i></a>
         <a href="https://in.linkedin.com/company/ibridge-techsoft-pvt-ltd"><i style="font-size:32px" class="fa">&#xf08c;</i></a>
         <div class="form" style="margin-top: 15px; margin-bottom: 10px;">
-          <input type="text" class="form-control" placeholder="First Name" name="firstname" id="firstname">
-          <input type="text" class="form-control" placeholder="Last Name" name="lastname" id="lastname">
+          
+          <input type="text" class="form-control" placeholder="username" name="username" id="username">
           <input type="email" class="form-control" placeholder="Email" name="email" id="email">
           <small class="form-text-muted text-left">Register User</small>
         </div>
@@ -44,27 +44,33 @@
 
 <script>
   function validateForm() {
-    var firstname = document.getElementById("firstname").value;
-    var lastname = document.getElementById("lastname").value;
+    //var firstname = document.getElementById("firstname").value;
+    //var lastname = document.getElementById("lastname").value;
+    var username = document.getElementById('username');
     var email = document.getElementById("email").value;
     var password = document.getElementById("password").value;
 
-    if (firstname === '' || lastname === '' || email === '' || password === '') {
+    if (username === '' || email === '' || password === '') {
       alert("Fill in all the details before submitting");
       return false;
     }
 
-    var firstnameRegex = /^[A-Za-z\s]+$/;
-    var lastnameRegex = /^[A-Za-z\s]+$/;
+    //var firstnameRegex = /^[A-Za-z\s]+$/;
+    //var lastnameRegex = /^[A-Za-z\s]+$/
+    var username= /^[A-Za-z\s]+$/;
     var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     var passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/;
 
-    if (!firstname.match(firstnameRegex)) {
-      alert("First Name should only contain alphabets and spaces.");
-      return false;
-    }
+    //if (!firstname.match(firstnameRegex)) {
+     // alert("First Name should only contain alphabets and spaces.");
+     // return false;
+    //}
 
-    if (!lastname.match(lastnameRegex)) {
+    //if (!lastname.match(lastnameRegex)) {
+      //alert("Last Name should only contain alphabets and spaces.");
+      //return false;
+    //}
+    if (!username.match(usernameRegex)) {
       alert("Last Name should only contain alphabets and spaces.");
       return false;
     }

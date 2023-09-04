@@ -1,17 +1,18 @@
 const express = require('express');
-const bodyParser = require('body-parser');
 const session = require('express-session');
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const { body, validationResult } = require('express-validator');
+const jwt = require('jsonwebtoken');
 const app = express();
+const bodyParser = require('body-parser');
 
 // Middleware to parse JSON data from incoming requests
 app.use(express.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static('public'));
 
 // Middleware
-app.use(bodyParser.urlencoded({ extended: true }));
 app.set('view engine', 'ejs');
 app.use(session({
   secret: 'your-secret-key',
@@ -20,7 +21,7 @@ app.use(session({
 }));
 
 // Connect to MongoDB (Make sure you have MongoDB running)
-mongoose.connect('mongodb://localhost:27017/signup-login', {
+mongoose.connect('mongodb://localhost:27017/register', {
   useNewUrlParser: true,
   useUnifiedTopology: true
 })
@@ -33,10 +34,11 @@ mongoose.connect('mongodb://localhost:27017/signup-login', {
 
 // Define a mongoose schema for user
 const userSchema = new mongoose.Schema({
-  firstname:String,
-  lastname: String,
+  username: String,
   email: String,
-  password: String
+  password: String,
+  role: String,
+  abilities: [{ action: String, subject: String }]
 });
 const User = mongoose.model('User', userSchema);
 
@@ -44,120 +46,159 @@ const User = mongoose.model('User', userSchema);
 const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
 const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/;
 
-// Signup GET route
-app.get('/signup', (req, res) => {
-  res.render('signup', { validationErrors: [], signupError: '' });
-});
-
 // Signup POST route with validation
 app.post('/signup', [
-  body('firstname').notEmpty().withMessage('First name is required'),
-  body('lastname').notEmpty().withMessage('Last name is required'),
+  body('username').notEmpty().withMessage('Username is required'),
   body('email').isEmail().withMessage('Invalid email format'),
   body('password').matches(passwordRegex).withMessage('Password requirements not met')
 ], async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     const validationErrors = errors.array().map(error => error.msg);
-    return res.render('signup', { validationErrors, signupError: '' });
+    return res.status(400).json({ errors: validationErrors });
   }
 
   try {
-    const email = req.body.email;
-
     // Check if the email already exists in the database
     const existingUser = await User.findOne({ email: req.body.email });
     if (existingUser) {
-      return res.render('signup', { signupError: 'User with this email already exists', validationErrors: [] });
+      return res.status(400).json({ error: 'User with this email already exists' });
     }
-    
+
     const hashedPassword = await bcrypt.hash(req.body.password, 10);
 
     const newUser = new User({
-      firstname: req.body.firstname,
-      lastname: req.body.lastname,
+      username: req.body.username,
       email: req.body.email,
-      password: hashedPassword
+      password: hashedPassword,
+      role: 'admin',
+      abilities: [
+        {
+          action: 'manage',
+          subject: 'all',
+        },
+      ],
     });
 
     await newUser.save();
     console.log('User saved:', newUser);
 
-    // Log in the user after successful signup
-    req.session.userId = newUser._id; // Store user ID in session
-    return res.redirect('/dashboard'); // Redirect to dashboard after successful signup and login
+    // Generate an access token
+    const accessToken = jwt.sign({ userId: newUser._id }, 'your-secret-key');
+
+    // Respond with user data and token
+    const response = {
+      userData: newUser,
+      accessToken: accessToken,
+      userAbilities: newUser.abilities,
+    }
+     console.log(response)
+    return res.status(200).json(response);
   } catch (error) {
     console.error('Route error:', error);
-    res.status(500).send(`An error occurred: ${error.message}`);
+    res.status(500).json({ error: 'An error occurred: ' + error.message });
   }
 });
 
-// Login GET route
-app.get('/login', (req, res) => {
-  res.render('login', { logout: req.query.logout === 'true', validationErrors: [], loginError: '' });
+// Signup GET route
+app.get('/signup', (req, res) => {
+  res.render('signup', { validationErrors: [], signupError: '' });
 });
 
-// Login POST route with validation
-app.post('/login', [
+// Login POST route
+// Signup POST route with validation
+app.post('/signup', [
+  body('username').notEmpty().withMessage('Username is required'),
   body('email').isEmail().withMessage('Invalid email format'),
-  body('password').isLength({ min: 8 }).withMessage('Password must be at least 8 characters long')
+  body('password').matches(passwordRegex).withMessage('Password requirements not met')
 ], async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     const validationErrors = errors.array().map(error => error.msg);
-    return res.render('login', { validationErrors, loginError: '' });
+    return res.status(400).json({ errors: validationErrors });
   }
 
   try {
-    const email = req.body.email;
-    const user = await User.findOne({ email: email });
-    if (!user) {
-      return res.render('login', { loginError: 'User does not exist', validationErrors: [] });
+    // Check if the email already exists in the database
+    const existingUser = await User.findOne({ email: req.body.email });
+    if (existingUser) {
+      return res.status(400).json({ error: 'User with this email already exists' });
     }
 
-    const match = await bcrypt.compare(req.body.password, user.password);
-    if (!match) {
-      return res.render('login', { loginError: 'Incorrect password', validationErrors: [] }); // Set the loginError here
+    const hashedPassword = await bcrypt.hash(req.body.password, 10);
+
+    const newUser = new User({
+      username: req.body.username,
+      email: req.body.email,
+      password: hashedPassword,
+      role: 'admin',
+      abilities: [
+        {
+          action: 'manage',
+          subject: 'all',
+        },
+      ],
+    });
+
+    await newUser.save();
+    console.log('User saved:', newUser);
+
+    // Generate an access token
+    const accessToken = jwt.sign({ userId: newUser._id }, 'your-secret-key');
+
+    // Respond with user data and token
+    const response = {
+      userData: newUser,
+      accessToken: accessToken,
+      userAbilities: newUser.abilities,
     }
 
-    // Set session data and redirect to dashboard
-    req.session.userId = user._id;
-    return res.redirect('/dashboard');
+    return res.status(200).json(response);
   } catch (error) {
     console.error('Route error:', error);
-    res.status(500).send(`An error occurred: ${error.message}`);
+    res.status(500).json({ error: 'An error occurred: ' + error.message });
   }
 });
 
-// Dashboard route
-app.get('/dashboard', async(req, res) => {
+
+// Dashboard route (protected)
+app.get('/dashboard', authenticateToken, (req, res) => {
   try {
-  // Check if user is logged in (session.userId exists)
-  if (req.session.userId) {
-    //Fetch the user's data from the database
-    const user = await User.findById(req.session.userId);
-    res.render('dashboard', { user });// Pass user data to the template
-  } else {
-    res.redirect('/signup'); // Redirect to signup if not logged in
-  }
-} catch (error) {
-  console.error('Route error:', error);
-  res.status(500).send(`An error occurred: ${error.message}`);
-}
-});
+    // Access the user data from the request (provided by the middleware)
+    const { userId, role, abilities } = req.session;
 
-// Logout route
-app.get('/logout', (req, res) => {
-  req.session.destroy((err) => {
-    if (err) {
-      console.error('Error destroying session:', err);
+    // Check the user's role and abilities to determine access
+    if (role === 'admin' || abilities.some(ability => ability.action === 'manage' && ability.subject === 'all')) {
+      // User has access to the dashboard
+      res.status(200).json({ message: 'You are authorized to access the dashboard.', userId });
+    } else {
+      // User does not have access
+      res.status(403).json({ message: 'Access denied.' });
     }
-    res.redirect('/login?logout=true'); // Redirect to login page after logout
-  });
+  } catch (error) {
+    console.error('Dashboard route error:', error);
+    res.status(500).json({ error: 'An error occurred while accessing the dashboard.' });
+  }
 });
 
-// Start the server
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+// Authentication middleware to verify JWT token
+function authenticateToken(req, res, next) {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+
+  if (!token) {
+    return res.status(401).json({ message: 'Unauthorized' });
+  }
+
+  jwt.verify(token, 'your-secret-key', (err, user) => {
+    if (err) {
+      return res.status(403).json({ message: 'Forbidden' });
+    }
+    req.user = user;
+    next();
+  });
+}
+
+app.listen(3000, () => {
+  console.log('Server is running on port 3000');
 });
